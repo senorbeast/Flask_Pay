@@ -20,14 +20,14 @@ Just install Flask by:
 pip install Flask
 ```
 
-### Setup db and fill it with some values:
+#### Setup db and fill it with some values:
 
 ```
 python db.py
 python fill_db.py
 ```
 
-### To run (dev):
+#### To run (dev):
 
 For virtualenv
 
@@ -81,9 +81,9 @@ python main.py
 
     Response Payload
 
-    ```
+    ```python
     {
-    "id": "transaction_id",
+    "id": "transaction_id",                                 # From transaction id
     "from":{
         "id": "account_no",
         "balance": "current_balance"
@@ -92,7 +92,7 @@ python main.py
         "id": "account_no",
         "balance": "current_balance"
     },
-    "transfered": "transfer_amount"
+    "transfered": "transfer_amount"                         
     "created_datetime": "transaction created time"
     }
     ```
