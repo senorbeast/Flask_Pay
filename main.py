@@ -23,8 +23,8 @@ import sqlite3
 # BEGIN EXCLUSIVE lock - COMMIT, 1 Txa (ATOMICITY) + await till unlock
 # Flask has inbuilt concurrency through its WSGI/ASGI production server. but need to wait for locked database
 
-# [ ] A,B transfer money to C at same time : Test through curl (curl url & curl url)commands. Need to test with JMeter
-# ? SERIALIZATION locking and unlocking db for read/write operation and async flask for await query ?
+# [ ] A,B transfer money to C at same time : Test through curl (curl url & curl url) commands. Need to test with JMeter
+# ?  For high load concurrency : SERIALIZATION locking and unlocking db for read/write operation and async flask for await query ?
 # BEGIN - COMMIT 1 Txa, Flask as a WSGI app, uses one worker to handle one request/response cycle.
 # [ ] exclusive lock to remove read access...
 # https://www.sqlite.org/lockingv3.html
