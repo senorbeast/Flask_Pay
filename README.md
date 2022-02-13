@@ -89,11 +89,18 @@ python main.py
         "id": "account_no",
         "balance": "current_balance"
     },
-    "transfered": "transfer_amount"                         
+    "transfered": "transfer_amount"
     "created_datetime": "transaction created time"
     }
     ```
    
+
+### Concurrency test
+
+```bash
+chmod u+x concurrent.sh
+./concurrent.sh
+```
 
 ## DB
 
