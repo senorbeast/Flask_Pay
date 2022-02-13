@@ -7,7 +7,7 @@ import datetime
 
 # NO ORM
 # [✔] 1. Creats, request, jsonify Database + View the Transactions and Balances Table
-# Operate on Database : Foreign Key? Required?
+# Operate on Database : Foreign Key - link
 
 # * Transfer API : X amount of money from A to B with post request
 # *   payloads for request and response are specified.
@@ -17,17 +17,31 @@ import datetime
 # Add more APIs for create a/c, money deposit etc
 
 # [✔] 3. Manage the logic at the database level ( Managed by serialization and ACID methodology)
-# What happens under high concurrency? : #!SERIALIZATION
 # What happens if your db becomes unavailable in the middle of logic? :
 #   a. Before txa
 #   b. During txa
+# What happens under high concurrency? :
+# SERIALIZATION
+# BEGIN EXCLUSIVE lock - COMMIT, 1 Txa (ATOMICITY) + await till unlock
+# Flask has inbuilt concurrency through its WSGI/ASGI production server. but need to wait for locked database
 
 # [ ] A,B transfer money to C at same time :
-# ! SERIALIZATION locking and unlocking db for read/write for 1 operation and async await flask ?
-# ! exclusive lock to remove read access...
-# Flask has inbuilt concurrency through its WSGI/ASGI production server. but need to wait for locked database
+# ? SERIALIZATION locking and unlocking db for read/write for  operation and async await flask ?
+# BEGIN - COMMIT 1 Txa, Flask as a WSGI app, uses one worker to handle one request/response cycle.
+# [ ] exclusive lock to remove read access...
 # https://www.sqlite.org/lockingv3.html
 #
+# Old Rollback Journall Way (Maintains a Rollback Journal, with data till last commit):
+#   Directly writes change to the db
+#   COMMIT or ROLLBACK: Delete Rollback journal
+#
+# WAL Mode : (Origial Content is preserved in the db)
+#   Writes changes to wal file
+#   Multiple transactions can be COMMITTED to WAL file
+#   Chekpointing - Wal file to db
+#   Readers can read content before the initial commit
+
+#  PySQLite does'nt autocommit
 
 app = Flask(__name__)
 app.config["JSON_SORT_KEYS"] = False
@@ -101,8 +115,9 @@ def transfer():
         # if DB is available after request and before commit
         try:
             #! some how all these in 1 string dont work ?!!
-            # lock = """ PRAGMA locking_mode = EXCLUSIVE;
-            # BEGIN EXCLUSIVE;"""
+            ex_lock1 = """ PRAGMA locking_mode = EXCLUSIVE"""
+            ex_lock2 = """BEGIN EXCLUSIVE"""
+
             debit = """UPDATE balancet 
                 SET balance = balance - {amt} 
                 WHERE account_no = {fa}
@@ -131,7 +146,8 @@ def transfer():
                 amt=amount, ta=to_account_no
             )
             # We are not using these cursor objects, we would name them same.
-
+            cursorel = conn.execute(ex_lock1)
+            cursorel2 = conn.execute(ex_lock2)
             cursord = conn.execute(debit)
             cursorc = conn.execute(credit)
             cursor_from_txa = conn.execute(update_from_txa)
@@ -139,7 +155,7 @@ def transfer():
             txa_rows = conn.execute(
                 "SELECT * FROM transactionst ORDER BY id DESC LIMIT 2;"
             )
-
+            # ? Can other instances of the API can read uncommited queries? -- YES
             balance_row_from = conn.execute(
                 "SELECT * FROM balancet WHERE account_no={fa} ".format(
                     fa=from_account_no
@@ -148,6 +164,10 @@ def transfer():
             balance_row_to = conn.execute(
                 "SELECT * FROM balancet WHERE account_no={ta} ".format(ta=to_account_no)
             )
+            txas = ldict_txa(txa_rows)[::-1]  # from_txa, to_txa
+            bals_from = ldict_bal(balance_row_from)  # from_bal, to_bal
+            bals_to = ldict_bal(balance_row_to)
+
         except Exception as e:
             ## if DB fails before commit (no rollback reqd)
             if str(e) == "CHECK constraint failed: balance >=0":
@@ -161,11 +181,6 @@ def transfer():
         try:
             # Need to commit to read from database,
             # could return payload w/o reading too ?
-
-            txas = ldict_txa(txa_rows)[::-1]  # from_txa, to_txa
-            bals_from = ldict_bal(balance_row_from)  # from_bal, to_bal
-            bals_to = ldict_bal(balance_row_to)
-            print(bals_from, bals_to)
             payload = {
                 "id": txas[0]["id"],  # From txa id
                 "from": {
