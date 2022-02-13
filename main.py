@@ -1,7 +1,5 @@
 from flask import Flask, request, jsonify
-import json
 import sqlite3
-import datetime
 
 ## Transfering money across two bank Accounts.
 
@@ -25,8 +23,8 @@ import datetime
 # BEGIN EXCLUSIVE lock - COMMIT, 1 Txa (ATOMICITY) + await till unlock
 # Flask has inbuilt concurrency through its WSGI/ASGI production server. but need to wait for locked database
 
-# [ ] A,B transfer money to C at same time :
-# ? SERIALIZATION locking and unlocking db for read/write for  operation and async await flask ?
+# [ ] A,B transfer money to C at same time : Test through curl (curl url & curl url)commands. Need to test with JMeter
+# ? SERIALIZATION locking and unlocking db for read/write operation and async flask for await query ?
 # BEGIN - COMMIT 1 Txa, Flask as a WSGI app, uses one worker to handle one request/response cycle.
 # [ ] exclusive lock to remove read access...
 # https://www.sqlite.org/lockingv3.html
@@ -41,7 +39,7 @@ import datetime
 #   Chekpointing - Wal file to db
 #   Readers can read content before the initial commit
 
-#  PySQLite does'nt autocommit
+#  PySQLite does'nt autocommit, default mode is Rollback Journal
 
 app = Flask(__name__)
 app.config["JSON_SORT_KEYS"] = False
@@ -114,9 +112,9 @@ def transfer():
     if conn:
         # if DB is available after request and before commit
         try:
-            #! some how all these in 1 string dont work ?!!
-            ex_lock1 = """ PRAGMA locking_mode = EXCLUSIVE"""
-            ex_lock2 = """BEGIN EXCLUSIVE"""
+            #  EXCLUSIVE LOCK
+            # ex_lock1 = """ PRAGMA locking_mode = EXCLUSIVE"""
+            # ex_lock2 = """BEGIN EXCLUSIVE"""
 
             debit = """UPDATE balancet 
                 SET balance = balance - {amt} 
@@ -146,8 +144,8 @@ def transfer():
                 amt=amount, ta=to_account_no
             )
             # We are not using these cursor objects, we would name them same.
-            cursorel = conn.execute(ex_lock1)
-            cursorel2 = conn.execute(ex_lock2)
+            # cursorel = conn.execute(ex_lock1)
+            # cursorel2 = conn.execute(ex_lock2)
             cursord = conn.execute(debit)
             cursorc = conn.execute(credit)
             cursor_from_txa = conn.execute(update_from_txa)
@@ -176,7 +174,7 @@ def transfer():
                 )
             else:
                 return jsonify({"Error2": str(e), "Status": "Transaction Failed!"})
-        # COMMITED TO DB
+        ## COMMITED TO DB
         conn.commit()
         try:
             # Need to commit to read from database,
