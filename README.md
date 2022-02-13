@@ -49,13 +49,11 @@ python main.py
 2. GET : [/txa](http://127.0.0.1:5000/txa) - To get transactions
 3. POST : /bal - To add new accounts and balance
 
-    Request Payload
+    Request 
 
     ```
-    {
-        "account_no": "account_no_to_add",
-        "balance": "amount_to_add",
-    }
+    curl --location --request POST 'http://127.0.0.1:5000/bal' \
+    --form 'balance="1338"'
     ```
 
     Respose Payload
@@ -69,14 +67,13 @@ python main.py
 
 4. POST : /transfer - To do a transaction
 
-    Request Payload
+    Request example:
 
     ```
-    {
-        "from": "account_no",
-        "to": "account_no",
-        "amount": "money"
-    }
+    curl --location --request POST 'http://127.0.0.1:5000/transfer' \
+    --form 'from_account_no="108"' \
+    --form 'to_account_no="107"' \
+    --form 'amount="0.01"'
     ```
 
     Response Payload
@@ -96,6 +93,7 @@ python main.py
     "created_datetime": "transaction created time"
     }
     ```
+   
 
 ## DB
 
