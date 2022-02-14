@@ -182,28 +182,6 @@ def transfer():
             txas = ldict_txa(txa_rows)[::-1]  # from_txa, to_txa
             bals_from = ldict_bal(balance_row_from)  # from_bal, to_bal
             bals_to = ldict_bal(balance_row_to)
-
-        except Exception as e:
-            ## if DB fails before commit (no rollback reqd)
-            if str(e) == "CHECK constraint failed: balance >=0":
-                return jsonify(
-                    {"Error1": "Insufficient funds", "Status": "Transaction Failed!"}
-                )
-            elif str(e) == "list index out of range":
-                return jsonify(
-                    {"Error1": "Account(s) NOT FOUND", "Status": "Transaction Failed!"}
-                )
-            # elif str(e) == "no such table: balancet" or "no such table: transactionst":
-            #     return jsonify(
-            #         {"Error1": "Server is down", "Status": "Transaction Failed!"}
-            #     )
-            else:
-                return jsonify({"Error2": str(e), "Status": "Transaction Failed!"})
-        ## COMMITED TO DB
-        conn.commit()
-        try:
-            # Need to commit to read from database,
-            # could return payload w/o reading too ?
             payload = {
                 "id": txas[0]["id"],  # From txa id
                 "from": {
@@ -217,6 +195,27 @@ def transfer():
                 "transfered": txas[1]["amount"],  # to_txa amount
                 "created_datetime": txas[1]["created_datetime"],
             }
+        except Exception as e:
+            ## if DB fails before commit (no rollback reqd)
+            if str(e) == "CHECK constraint failed: balance >=0":
+                return jsonify(
+                    {"Error1": "Insufficient funds", "Status": "Transaction Failed!"}
+                )
+            elif str(e) == "list index out of range":
+                return jsonify(
+                    {"Error2": "Account(s) NOT FOUND", "Status": "Transaction Failed!"}
+                )
+            # elif str(e) == "no such table: balancet" or "no such table: transactionst":
+            #     return jsonify(
+            #         {"Error1": "Server is down", "Status": "Transaction Failed!"}
+            #     )
+            else:
+                return jsonify({"Error2": str(e), "Status": "Transaction Failed!"})
+        ## COMMITED TO DB
+        conn.commit()
+        try:
+            # Need to commit to read from database,
+            # could return payload w/o reading too ?
             conn.close()
             return jsonify(payload)
         except Exception as e:
