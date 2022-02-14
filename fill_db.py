@@ -27,7 +27,7 @@ conn = sqlite3.connect("bank.sqlite")
 cur = conn.cursor()
 
 ## balance records or rows in a list
-records = [(500, 3000), (501, 4000), (502, 0)]
+records = [(501, 3000), (502, 4000), (503, 0)]
 
 # insert multiple records in a single query
 cur.executemany("INSERT INTO balancet VALUES(?,?);", records)
@@ -38,9 +38,9 @@ conn.commit()
 
 ## txa records or rows in a list
 records = [
-    (100, 500, 50, "2022-02-12 19:19:51"),
-    (101, 501, -50, "2022-02-12 19:19:51"),
-    (102, 502, 1337, "2022-02-12 19:19:51"),
+    (543, 0, 10, "2022-02-12 19:19:51"),
+    (546, 0, 11, "2022-02-12 19:29:51"),
+    (547, 0, 12, "2022-02-12 19:39:51"),
 ]
 # insert multiple records in a single query
 cur.executemany("INSERT INTO transactionst VALUES(?,?,?,?);", records)

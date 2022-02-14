@@ -49,7 +49,7 @@ python main.py
 2. GET : [/txa](http://127.0.0.1:5000/txa) - To get transactions
 3. POST : /bal - To add new accounts and balance
 
-    Request 
+    Request
 
     ```
     curl --location --request POST 'http://127.0.0.1:5000/bal' \
@@ -78,7 +78,7 @@ python main.py
 
     Response Payload
 
-    ```python
+    ```bash
     {
     "id": "transaction_id",                                 # From transaction id
     "from":{
@@ -93,13 +93,12 @@ python main.py
     "created_datetime": "transaction created time"
     }
     ```
-   
 
-### Concurrency test
+### Edge Cases Test and Concurrency Test
 
 ```bash
-chmod u+x concurrent.sh
-./concurrent.sh
+chmod u+x test.sh
+./test.sh
 ```
 
 ## DB

@@ -103,9 +103,26 @@ def transfer():
             "created_datetime": "transaction created time"
             }
     """
+    # For JSON input
+    # request_data = request.get_json()
+    # from_account_no = request_data["from_account_no"]
+    # to_account_no = request_data["to_account_no"]
+    # amount = request_data["amount"]
+
     from_account_no = request.form["from_account_no"]
     to_account_no = request.form["to_account_no"]
     amount = request.form["amount"]
+    if int(amount) <= 0:
+        return jsonify(
+            {"Error1": "Enter Positive Amount value", "Status": "Transaction Failed!"}
+        )
+    elif from_account_no == to_account_no:
+        return jsonify(
+            {
+                "Error1": "Transfer to same a/c: You are drunk!",
+                "Status": "Transaction Failed!",
+            }
+        )
     conn = db_connection()
     cursor = conn.cursor()
     # After connection with db
@@ -172,6 +189,14 @@ def transfer():
                 return jsonify(
                     {"Error1": "Insufficient funds", "Status": "Transaction Failed!"}
                 )
+            elif str(e) == "list index out of range":
+                return jsonify(
+                    {"Error1": "Account(s) NOT FOUND", "Status": "Transaction Failed!"}
+                )
+            # elif str(e) == "no such table: balancet" or "no such table: transactionst":
+            #     return jsonify(
+            #         {"Error1": "Server is down", "Status": "Transaction Failed!"}
+            #     )
             else:
                 return jsonify({"Error2": str(e), "Status": "Transaction Failed!"})
         ## COMMITED TO DB
