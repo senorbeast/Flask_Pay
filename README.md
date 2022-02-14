@@ -101,6 +101,13 @@ chmod u+x test.sh
 ./test.sh
 ```
 
+### Individual Edge Cases Test
+
+```bash
+chmod u+x test2.sh
+./test2.sh
+```
+
 ## DB
 
 ### Balance table
